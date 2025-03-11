@@ -1,0 +1,67 @@
+variant: fcos
+version: 1.5.0
+passwd:
+  users:
+    - name: core
+      ssh_authorized_keys: %%SSH_AUTHORIZED_KEYS%%
+storage:
+  directories:
+    - path: /etc/sysupdate.d
+    - path: /var/lib/extensions
+    - path: /var/lib/extensions.d
+  files:
+    - path: "/var/lib/extensions.d/%%SYSEXT_NAME_VERSION%%.raw"
+      contents:
+        source: "%%SYSEXT_URL%%/%%SYSEXT_NAME_VERSION%%.raw"
+    - path: "/etc/sysctl.d/kubernetes.conf"
+      contents:
+        inline: |
+          net.ipv4.ip_forward = 1
+    - path: "/etc/modules-load.d/kubernetes.conf"
+      contents:
+        inline: |
+          br_netfilter
+    - path: "/etc/hostname"
+      contents:
+        inline: |
+          %%HOSTNAME%%
+  links:
+    - path: "/var/lib/extensions/kubernetes-cri-o-%%KUBERNETES_VERSION%%.raw"
+      target: "../extensions.d/%%SYSEXT_NAME_VERSION%%.raw"
+      hard: false
+systemd:
+  units:
+    # Setup sysexts
+    - name: systemd-sysext.service
+      enabled: true
+    # We will use CRI-O
+    - name: docker.socket
+      enabled: false
+      mask: true
+    # Enable CRI-O
+    - name: crio.service
+      enabled: true
+    # Enable kubelet
+    - name: kubelet.service
+      enabled: true
+    # Disable auto-updates via Zincati for now (see fleetlock)
+    - name: zincati.service
+      enabled: false
+      mask: true
+    # Setup default CRI-O config from the sysext
+    - name: crio-config.service
+      enabled: true
+      contents: |
+        [Unit]
+        Description=Setup default CRI-O config from the sysext
+        Requires=systemd-sysext.service
+        After=systemd-sysext.service
+        Before=crio.service
+        ConditionPathExists=!/etc/crio
+        [Service]
+        Type=oneshot
+        RemainAfterExit=yes
+        ExecStart=cp -a /usr/etc/crio /etc/
+        ExecStart=restorecon -RFv /etc/crio
+        [Install]
+        WantedBy=multi-user.target

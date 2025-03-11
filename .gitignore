@@ -1,0 +1,6 @@
+/*.raw
+/kubernetes-cri-o-*.conf
+/*.bu
+/*.ign
+/*.qcow2
+/ssh_authorized_keys
