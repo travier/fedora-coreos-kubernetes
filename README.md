@@ -4,8 +4,7 @@ This is an example using Fedora CoreOS and Kubeadm to deploy a Kubernetes
 cluster using systemd system extensions (sysexts).
 
 This example is intentionally only partially automated as it serves as a
-tutorial to discover how to all of those components work together to setup a
-Kurbenetes cluster.
+tutorial to discover how those projects together to setup a Kurbenetes cluster.
 
 **Important note:** Support for sysexts is still work in progress for Fedora
 CoreOS, so there is currently no ideal way of updating them in sync with Fedora
@@ -85,7 +84,7 @@ Edit the values at the top of the `justfile` to update those options.
 - Kubernetes versions: Defaults to the latest stable version available in
   Fedora (currently `1.32`). Should also work with all Kubernetes versions
   available in Fedora for the current release of Fedora CoreOS. As of today:
-  1.29, 1.30, 1.31, 1.32.
+  `1.29`, `1.30`, `1.31`, `1.32`.
 - Number of worker nodes: Defaults to 3
 - Number of control plane nodes: Limited to 1 for now
 
