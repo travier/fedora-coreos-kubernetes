@@ -25,6 +25,11 @@ storage:
       contents:
         inline: |
           %%HOSTNAME%%
+    - path: "/etc/sysconfig/crio"
+      contents:
+        inline: |
+          # Setup default CRI-O config from the sysext
+          CRIO_CONFIG_OPTIONS="--config /usr/etc/crio/crio.conf"
   links:
     - path: "/var/lib/extensions/kubernetes-cri-o-%%KUBERNETES_VERSION%%.raw"
       target: "../extensions.d/%%SYSEXT_NAME_VERSION%%.raw"
@@ -48,20 +53,3 @@ systemd:
     - name: zincati.service
       enabled: false
       mask: true
-    # Setup default CRI-O config from the sysext
-    - name: crio-config.service
-      enabled: true
-      contents: |
-        [Unit]
-        Description=Setup default CRI-O config from the sysext
-        Requires=systemd-sysext.service
-        After=systemd-sysext.service
-        Before=crio.service
-        ConditionPathExists=!/etc/crio
-        [Service]
-        Type=oneshot
-        RemainAfterExit=yes
-        ExecStart=cp -a /usr/etc/crio /etc/
-        ExecStart=restorecon -RFv /etc/crio
-        [Install]
-        WantedBy=multi-user.target
