@@ -17,8 +17,6 @@ If you need something more complete and automated, take a look at
 ## How to
 
 - Add you SSH public key to a file named `ssh_authorized_keys` (one per line)
-- Pick a supported Kubernetes version (defaults to latest stable version
-  available from Fedora repos)
 - Generate the Butane configs:
   ```
   $ just generate
@@ -77,7 +75,21 @@ If you need something more complete and automated, take a look at
   $ kubectl get pods -o wide
   ```
 
-## Faster deployment when using libivrtd
+## Options available
+
+Edit the values at the top of the `justfile` to update those options.
+
+- Architectures: Defaults to `x86_64`. `aarch64` should also work.
+- Fedora CoreOS stream: Defaults to `stable`. `testing` or `next` should also
+  work.
+- Kubernetes versions: Defaults to the latest stable version available in
+  Fedora (currently `1.32`). Should also work with all Kubernetes versions
+  available in Fedora for the current release of Fedora CoreOS. As of today:
+  1.29, 1.30, 1.31, 1.32.
+- Number of worker nodes: Defaults to 3
+- Number of control plane nodes: Limited to 1 for now
+
+## Faster local deployment when using libivrtd
 
 - Download the sysexts on your libvirtd host:
   ```
