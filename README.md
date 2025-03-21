@@ -11,6 +11,9 @@ Kurbenetes cluster.
 CoreOS, so there is currently no ideal way of updating them in sync with Fedora
 CoreOS updates.
 
+If you need something more complete and automated, take a look at
+[Typhoon](https://typhoon.psdn.io/).
+
 ## How to
 
 - Add you SSH public key to a file named `ssh_authorized_keys` (one per line)
