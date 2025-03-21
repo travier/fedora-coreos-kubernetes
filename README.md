@@ -20,8 +20,8 @@ If you need something more complete and automated, take a look at
   ```
   $ just generate
   ```
-- Start the virtual machines using libvirtd
-  - or use the Ignition configs to set them up on your favorite platform
+- Start the virtual machines using libvirtd (or use the Ignition configs to set
+  them up on your favorite platform):
   ```
   $ just install
   ```
@@ -37,12 +37,14 @@ If you need something more complete and automated, take a look at
   core@fcos-kube-cp-1$ sudo chown $(id -u):$(id -g) $HOME/.kube/config
   ```
 - Setup a CNI:
-  ```
-  # Flannel
-  core@fcos-kube-cp-1$ kubectl apply -f https://github.com/flannel-io/flannel/releases/latest/download/kube-flannel.yml
-  # Calico
-  core@fcos-kube-cp-1$ kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/v3.24.1/manifests/calico.yaml
-  ```
+  - Flannel:
+    ```
+    core@fcos-kube-cp-1$ kubectl apply -f https://github.com/flannel-io/flannel/releases/latest/download/kube-flannel.yml
+    ```
+  - Calico:
+    ```
+    core@fcos-kube-cp-1$ kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/v3.24.1/manifests/calico.yaml
+    ```
 - Wait and verify that the nodes are ready
   ```
   core@fcos-kube-cp-1$ kubectl get nodes
