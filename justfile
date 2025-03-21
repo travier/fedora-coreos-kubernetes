@@ -7,11 +7,8 @@ kubernetes_version := "1.32"
 # Where to fetch the sysexts from
 sysext_url := "https://github.com/travier/fedora-sysexts/releases/download/fedora-coreos-stable/"
 
-# Version of Fedora CoreOS, also used for the systext version
-fcos_version := "41.20250215.3.0"
-
-# Name and version of the sysext to fetch
-sysext_name_version := "kubernetes-cri-o-" + kubernetes_version + "-" + fcos_version + "-x86-64"
+# Architecture (x86_64 or aarch64)
+arch := "x86_64"
 
 # Number of control plane nodes (only 1 is supported right now)
 control_plane_nodes := "1"
@@ -45,13 +42,23 @@ generate-config +hostnames:
     sshkeys+=" ]"
     fi
 
+    # Version of Fedora CoreOS, also used for the sysext version
+    fcos_version="$(curl -sSL \
+        https://builds.coreos.fedoraproject.org/streams/stable.json \
+        | jq -r '.architectures.{{arch}}.artifacts.qemu.release'
+    )"
+
+    # Name and version of the sysext to fetch
+    arch=$(echo {{arch}} | sed 's/_/-/g')
+    sysext_name_version="kubernetes-cri-o-{{kubernetes_version}}-${fcos_version}-${arch}"
+
     for host in {{hostnames}}; do
         cp "kube-sysext.bu.template" "${host}.bu"
         sed -i \
             -e "s|%%HOSTNAME%%|${host}|" \
             -e "s|%%KUBERNETES_VERSION%%|{{kubernetes_version}}|" \
             -e "s|%%SYSEXT_URL%%|{{sysext_url}}|" \
-            -e "s|%%SYSEXT_NAME_VERSION%%|{{sysext_name_version}}|" \
+            -e "s|%%SYSEXT_NAME_VERSION%%|${sysext_name_version}|" \
             -e "s|%%SSH_AUTHORIZED_KEYS%%|${sshkeys}|" \
             "${host}.bu"
         ${butane} --strict --pretty --output "${host}.ign" "${host}.bu"
@@ -64,14 +71,30 @@ download-fedora-coreos:
     # set -x
     images="$(ls ./fedora-coreos-*.qcow2)"
     if [[ -z "${images}" ]]; then
-        coreos-installer download -s "{{fedora_coreos_stream}}" -p qemu -f qcow2.xz --decompress
+        coreos-installer download \
+            --stream "{{fedora_coreos_stream}}" \
+            --platform qemu \
+            --format qcow2.xz \
+            --decompress \
+            --architecture {{arch}}
     fi
 
 download-sysext:
     #!/bin/bash
     set -euo pipefail
     # set -x
-    wget "{{sysext_url}}/{{sysext_name_version}}.raw"
+
+    # Version of Fedora CoreOS, also used for the sysext version
+    fcos_version="$(curl -sSL \
+        https://builds.coreos.fedoraproject.org/streams/stable.json \
+        | jq -r '.architectures.x86_64.artifacts.qemu.release'
+    )"
+
+    # Name and version of the sysext to fetch
+    arch=$(echo {{arch}} | sed 's/_/-/g')
+    sysext_name_version="kubernetes-cri-o-{{kubernetes_version}}-${fcos_version}-${arch}"
+
+    wget "{{sysext_url}}/${sysext_name_version}.raw"
 
 hostnames:
     #!/bin/bash
@@ -113,7 +136,7 @@ install:
     done
 
     for host in $(just hostnames); do
-        just virt-install "${host}" "${host}.ign" "fedora-coreos-"*"-qemu.x86_64.qcow2"
+        just virt-install "${host}" "${host}.ign" "fedora-coreos-"*"-qemu.{{arch}}.qcow2"
     done
 
     for host in $(just hostnames); do
