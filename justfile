@@ -5,10 +5,13 @@ fedora_coreos_stream := "stable"
 kubernetes_version := "1.32"
 
 # Where to fetch the sysexts from
-sysext_url := "https://github.com/travier/fedora-sysexts/releases/download/fedora-coreos-stable/"
+sysext_url := "https://extensions.fcos.fr/extensions/" + "kubernetes-cri-o-" + kubernetes_version
 
 # Architecture (x86_64 or aarch64)
 arch := "x86_64"
+
+# Exact version of the sysext
+sysext_version := "1.32.3-1.fc41-41"
 
 # Number of control plane nodes (only 1 is supported right now)
 control_plane_nodes := "1"
@@ -53,7 +56,7 @@ generate-config +hostnames:
 
     # Name and version of the sysext to fetch
     arch=$(echo {{arch}} | sed 's/_/-/g')
-    sysext_name_version="kubernetes-cri-o-{{kubernetes_version}}-${fcos_version}-${arch}"
+    sysext_name_version="kubernetes-cri-o-{{kubernetes_version}}-{{sysext_version}}-${arch}"
 
     for host in {{hostnames}}; do
         cp "kube-sysext.bu.template" "${host}.bu"
