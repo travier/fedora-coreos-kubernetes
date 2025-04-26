@@ -184,8 +184,8 @@ virsh-rm +hostnames:
     # set -x
     libvirt_url="qemu:///system"
     for vm in {{hostnames}}; do
-        virsh --connect="${libvirt_url}" destroy --domain "${vm}" || true
-        virsh --connect="${libvirt_url}" undefine --remove-all-storage "${vm}" || true
+        virsh --connect="${libvirt_url}" destroy --domain "${vm}" &> /dev/null || true
+        virsh --connect="${libvirt_url}" undefine --remove-all-storage "${vm}" &> /dev/null || true
     done
 
 virt-install vm_name ignition_config qemu_image:
