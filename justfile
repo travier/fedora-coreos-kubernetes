@@ -16,12 +16,15 @@ control_plane_nodes := "1"
 # Number of worker nodes
 worker_nodes := "3"
 
-# Do nothing by default for now
+# Print help and available recipes
 all:
-    true
+    #!/bin/bash
+    set -euo pipefail
+    echo "See README for instructions."
+    echo ""
+    just -l
 
-# Generate a Butane config from the template for the given hostname and convert
-# it to an Ignition config
+# Generate a Butane config from the template for the given hostname and convert it to an Ignition config
 generate-config +hostnames:
     #!/bin/bash
     set -euo pipefail
@@ -79,6 +82,7 @@ download-fedora-coreos:
             --architecture {{arch}}
     fi
 
+# Download the sysext locally
 download-sysext:
     #!/bin/bash
     set -euo pipefail
@@ -96,6 +100,7 @@ download-sysext:
 
     wget "{{sysext_url}}/${sysext_name_version}.raw"
 
+# Generate the list of hostnames
 hostnames:
     #!/bin/bash
     set -euo pipefail
@@ -113,12 +118,14 @@ hostnames:
     done
     echo "${out}"
 
+# Generate all Butane and Ignition configs
 generate:
     #!/bin/bash
     set -euo pipefail
     # set -x
     just generate-config $(just hostnames)
 
+# Start the installation of the cluster
 install:
     #!/bin/bash
     set -euo pipefail
@@ -143,6 +150,7 @@ install:
         echo "ssh core@\$(just virsh-get-ip "${host}")"
     done
 
+# Destroy all VMs
 destroy:
     #!/bin/bash
     set -euo pipefail
@@ -152,6 +160,7 @@ destroy:
         just virsh-rm "${host}"
     done
 
+# Print commands to ssh to the cluster nodes
 ssh:
     #!/bin/bash
     set -euo pipefail
@@ -161,6 +170,7 @@ ssh:
         echo "ssh core@\$(just virsh-get-ip "${host}")"
     done
 
+# List all VMs
 virsh-list-all:
     #!/bin/bash
     set -euo pipefail
@@ -168,6 +178,7 @@ virsh-list-all:
     libvirt_url="qemu:///system"
     virsh --connect="${libvirt_url}" list --all
 
+# Get the IP for a VM
 virsh-get-ip +hostnames:
     #!/bin/bash
     set -euo pipefail
@@ -178,6 +189,7 @@ virsh-get-ip +hostnames:
         virsh --connect="${libvirt_url}" --quiet net-dhcp-leases default --mac "${mac}" | awk '{ print $5 }' | sed 's|/24||'
     done
 
+# Remove a VM
 virsh-rm +hostnames:
     #!/bin/bash
     set -euo pipefail
@@ -188,6 +200,7 @@ virsh-rm +hostnames:
         virsh --connect="${libvirt_url}" undefine --remove-all-storage "${vm}" &> /dev/null || true
     done
 
+# Install a VM
 virt-install vm_name ignition_config qemu_image:
     #!/bin/bash
     set -euo pipefail
@@ -231,7 +244,6 @@ virt-install vm_name ignition_config qemu_image:
         "${IGNITION_DEVICE_ARG[@]}" \
         --noautoconsole
 
-# Serve the current directory over HTTP
-# See: https://github.com/TheWaWaR/simple-http-server
+# Serve the current directory over HTTP. See: https://github.com/TheWaWaR/simple-http-server
 serve:
     simple-http-server .
